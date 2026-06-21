@@ -1,0 +1,216 @@
+<div align="center">
+  
+# 🤖 AI Code Review Agent
+
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg?logo=python&logoColor=white)](https://www.python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/Vite-B73BFE?style=flat&logo=vite&logoColor=FFD62E)](https://vitejs.dev/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-🦜🕸️-black)](https://python.langchain.com/v0.1/docs/langgraph/)
+[![Dough API](https://img.shields.io/badge/Dough.id-Llama_3.3_70B-orange)](https://dough.id/)
+
+**Automated GitHub PR analysis using 3 parallel AI agents.**
+
+[Architecture](#architecture) • [Features](#features) • [Quick Start](#quick-start) • [API](#api-reference) • [Demo](#demo)
+
+</div>
+
+---
+
+## ⚡ Overview
+
+The AI Code Review Agent is a full-stack application that acts as an automated, multi-disciplinary code reviewer. By pasting a GitHub Pull Request URL, the system fetches the code changes and processes them through **three specialized AI agents in parallel**.
+
+Each agent has a specific focus:
+- 🔒 **Security Agent**: Hardcoded secrets, SQL injection, XSS, insecure dependencies.
+- 🚀 **Performance Agent**: N+1 queries, memory leaks, blocking I/O, O(n²) loops.
+- ✨ **Code Quality Agent**: Code smells, SOLID violations, naming conventions, missing error handling.
+
+The agents parse the PR diff, generate a structured JSON report, and synthesize a comprehensive markdown review that can be automatically posted directly to the GitHub PR.
+
+---
+
+## 🏗️ Architecture
+
+The backend utilizes **FastAPI** for high-performance async routing, while **LangGraph** orchestrates the multi-agent LLM workflow. Requests are routed through the **Dough.id API** (OpenAI compatible) to process using Meta's `llama-3.3-70b-versatile` model.
+
+```mermaid
+graph TD
+    %% Styling
+    classDef frontend fill:#2d3748,stroke:#4a5568,stroke-width:2px,color:#fff
+    classDef backend fill:#2c5282,stroke:#4299e1,stroke-width:2px,color:#fff
+    classDef agent fill:#702459,stroke:#d53f8c,stroke-width:2px,color:#fff
+    classDef external fill:#276749,stroke:#48bb78,stroke-width:2px,color:#fff
+
+    %% Nodes
+    UI[🖥️ React SPA Frontend]:::frontend
+    API[⚡ FastAPI Backend]:::backend
+    GH_API[🐙 GitHub API]:::external
+    DOUGH[🧠 Dough.id / Groq LLM]:::external
+    
+    subgraph LangGraph Orchestration
+        SEC[🔒 Security Agent]:::agent
+        PERF[🚀 Performance Agent]:::agent
+        QUAL[✨ Code Quality Agent]:::agent
+        SYNTH[📝 Markdown Synthesizer]:::agent
+    end
+
+    %% Connections
+    UI -- "POST /review (PR URL)" --> API
+    API -- "Fetch Diff & Meta" --> GH_API
+    GH_API -- "Raw Git Diff" --> API
+    API -- "asyncio.gather()" --> SEC & PERF & QUAL
+    
+    SEC -. "JSON Review" .-> DOUGH
+    PERF -. "JSON Review" .-> DOUGH
+    QUAL -. "JSON Review" .-> DOUGH
+    
+    SEC & PERF & QUAL --> SYNTH
+    SYNTH -- "Combined Report" --> API
+    API -- "Post Comment (Optional)" --> GH_API
+    API -- "JSON + Markdown" --> UI
+```
+
+---
+
+## ✨ Features
+
+- **Parallel Execution**: All three AI agents run simultaneously using `asyncio.gather()` to minimize latency.
+- **Rate-Limit Resilient**: Employs `tenacity` for exponential backoff retries and staggers agent starts by 2 seconds to avoid 429 errors.
+- **Robust Parsing**: Diff truncation ensures LLM token limits are respected (~8k char limit). Robust JSON extraction ignores markdown code fences.
+- **Dark Glassmorphism UI**: A premium, responsive React dashboard built with Vite.
+- **Cloudflare Bypass**: Configured with custom `User-Agent` headers to securely route through Dough.id's protected API gateway.
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+
+- **Python** `≥ 3.11`
+- **Node.js** `≥ 18`
+- **Dough.id API Key** (or Groq/OpenAI compatible key)
+- **GitHub Personal Access Token** (Optional for public repos, required to post comments)
+
+### 2. Backend Setup
+
+```bash
+# Clone the repository and enter the directory
+cd pr_rev
+
+# Create and activate a virtual environment
+python -m venv .venv
+.venv\Scripts\activate      # Windows
+source .venv/bin/activate   # macOS / Linux
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### 3. Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# API Keys
+DOUGH_API_KEY=sk-your-dough-api-key
+GITHUB_TOKEN=ghp_your_github_token_here
+```
+
+### 4. Frontend Setup
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+### 5. Running the Application
+
+Open **two terminals** to run the services concurrently:
+
+**Terminal 1 — Backend (FastAPI)**
+```bash
+.venv\Scripts\activate
+uvicorn main:app --reload --port 8000
+```
+
+**Terminal 2 — Frontend (Vite)**
+```bash
+cd frontend
+npm run dev
+```
+
+Navigate to **http://localhost:5173** to access the dashboard.
+
+---
+
+## 📖 API Reference
+
+### `GET /health`
+Liveness probe to verify the backend is running.
+
+```json
+{ "status": "ok", "version": "1.0.0" }
+```
+
+### `POST /review`
+Executes the full multi-agent review pipeline.
+
+**Request:**
+```json
+{
+  "pr_url": "https://github.com/owner/repo/pull/123",
+  "post_comment": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "pr_title": "Add user authentication",
+  "pr_author": "octocat",
+  "security": { "agent_name": "Security Agent", "issues": [], "summary": "..." },
+  "performance": { "agent_name": "Performance Agent", "issues": [], "summary": "..." },
+  "code_quality": { "agent_name": "Code Quality Agent", "issues": [], "summary": "..." },
+  "markdown_comment": "# 🤖 AI Code Review Report\n...",
+  "comment_posted": true,
+  "comment_url": "https://github.com/owner/repo/pull/123#issuecomment-12345",
+  "total_issues": 4,
+  "critical_count": 0,
+  "duration_seconds": 12.4
+}
+```
+
+---
+
+## 🛠️ Project Structure
+
+```text
+pr_rev/
+├── main.py                # FastAPI Application & Endpoints
+├── agents.py              # LangGraph Agents & Dough.id Integration
+├── github_utils.py        # GitHub REST API interactions
+├── requirements.txt       # Python dependencies
+├── .env                   # Environment variables
+└── frontend/
+    ├── src/
+    │   ├── App.jsx        # Main React Dashboard Component
+    │   ├── App.css        # Glassmorphism Styling
+    │   └── main.jsx       # React Entry Point
+    ├── package.json       # Node dependencies
+    └── vite.config.js     # Vite configuration & proxy
+```
+
+---
+
+## 🔧 Troubleshooting
+
+| Issue | Resolution |
+|---|---|
+| **`401 Unauthorized` (GitHub)** | Verify `GITHUB_TOKEN` is set in `.env` and has `repo` scope. |
+| **`404 Not Found` (GitHub)** | Ensure the PR URL is formatted correctly: `https://github.com/owner/repo/pull/NNN`. |
+| **`403 / Blocked` (Dough.id)** | Make sure `User-Agent` is configured in `ChatOpenAI` headers to bypass Cloudflare. |
+| **CORS Errors** | Ensure the backend is running on port `8000`. Vite automatically proxies `/review` to it. |
+| **Empty Diff** | The PR might only contain merge commits without code changes. |
