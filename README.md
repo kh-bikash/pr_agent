@@ -98,24 +98,20 @@ You can run this project in two ways: as a **Standalone CLI** or as a **Full-Sta
 
 ### Option A: Use as a CLI Package
 
-The fastest way to use the code reviewer is directly from your terminal.
+The fastest way to use the code reviewer is directly from your terminal. You do **not** need to clone this repository.
 
 ```bash
-# 1. Clone the repo
-cd pr_rev
+# 1. Install globally via pip
+pip install pr-review-me
 
-# 2. Install it locally (this installs the `ai-pr-reviewer` command)
-pip install -e .
-
-# 3. Set your API key
+# 2. Set your API key (or pass it directly via --dough-api-key)
 export DOUGH_API_KEY="sk-your-key-here"
-# (Optionally set GITHUB_TOKEN if you want to post comments)
 
-# 4. Run it!
-ai-pr-reviewer https://github.com/django/django/pull/21523
+# 3. Run the review against any public PR!
+pr-review-me https://github.com/django/django/pull/21523
 
 # (Add --post-comment to automatically post the review back to GitHub)
-ai-pr-reviewer https://github.com/django/django/pull/21523 --post-comment
+pr-review-me https://github.com/django/django/pull/21523 --post-comment
 ```
 
 ---
