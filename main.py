@@ -21,8 +21,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator
 
-from agents import AgentResult, run_all_agents, synthesize_comment
-from github_utils import (
+from ai_pr_reviewer.agents import AgentResult, run_all_agents, synthesize_comment
+from ai_pr_reviewer.github_utils import (
     fetch_pr_diff,
     fetch_pr_metadata,
     parse_pr_url,

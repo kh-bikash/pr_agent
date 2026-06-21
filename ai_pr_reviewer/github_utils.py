@@ -20,7 +20,6 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 GITHUB_API = "https://api.github.com"
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 
 # Regex that matches both /pull/ and /pulls/ (tolerant of trailing slashes)
 _PR_PATTERN = re.compile(
@@ -33,8 +32,9 @@ def _base_headers() -> Dict[str, str]:
         "Accept": "application/vnd.github.v3+json",
         "X-GitHub-Api-Version": "2022-11-28",
     }
-    if GITHUB_TOKEN:
-        headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
+    github_token = os.getenv("GITHUB_TOKEN", "").strip()
+    if github_token:
+        headers["Authorization"] = f"Bearer {github_token}"
     return headers
 
 
@@ -134,7 +134,8 @@ async def post_pr_comment(
     Returns the created comment object from GitHub.
     Raises httpx.HTTPStatusError on failure.
     """
-    if not GITHUB_TOKEN:
+    github_token = os.getenv("GITHUB_TOKEN", "").strip()
+    if not github_token:
         raise PermissionError(
             "GITHUB_TOKEN is not set. "
             "A token is required to post comments on PRs."

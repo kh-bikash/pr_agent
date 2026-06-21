@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-pr-reviewer"
+version = "1.0.0"
+description = "Automated GitHub PR code review agent powered by LangGraph and Dough.id (Llama 3.3)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "Developer", email = "developer@example.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+    "python-dotenv",
+    "pydantic",
+    "tenacity",
+    "langchain-core",
+    "langchain-openai",
+    "langgraph",
+    "rich",
+    "argparse"
+]
+
+[tool.setuptools.packages.find]
+include = ["ai_pr_reviewer*"]
+
+[project.urls]
+"Homepage" = "https://github.com/kh-bikash/pr_agent"
+"Bug Tracker" = "https://github.com/kh-bikash/pr_agent/issues"
+
+[project.scripts]
+ai-pr-reviewer = "ai_pr_reviewer.cli:main"

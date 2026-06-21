@@ -1,3 +1,28 @@
+Metadata-Version: 2.4
+Name: ai-pr-reviewer
+Version: 1.0.0
+Summary: Automated GitHub PR code review agent powered by LangGraph and Dough.id (Llama 3.3)
+Author-email: Developer <developer@example.com>
+Project-URL: Homepage, https://github.com/kh-bikash/pr_agent
+Project-URL: Bug Tracker, https://github.com/kh-bikash/pr_agent/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Environment :: Console
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: httpx
+Requires-Dist: python-dotenv
+Requires-Dist: pydantic
+Requires-Dist: tenacity
+Requires-Dist: langchain-core
+Requires-Dist: langchain-openai
+Requires-Dist: langgraph
+Requires-Dist: rich
+Requires-Dist: argparse
+
 <div align="center">
   
 # 🤖 AI Code Review Agent
@@ -85,49 +110,17 @@ graph TD
 
 ## 🚀 Quick Start
 
-You can run this project in two ways: as a **Standalone CLI** or as a **Full-Stack Web App**.
-
 ### 1. Prerequisites
 
 - **Python** `≥ 3.11`
+- **Node.js** `≥ 18`
 - **Dough.id API Key** (or Groq/OpenAI compatible key)
 - **GitHub Personal Access Token** (Optional for public repos, required to post comments)
-- **Node.js** `≥ 18` *(Only required for the Web App)*
 
----
-
-### Option A: Use as a CLI Package
-
-The fastest way to use the code reviewer is directly from your terminal.
+### 2. Backend Setup
 
 ```bash
-# 1. Clone the repo
-cd pr_rev
-
-# 2. Install it locally (this installs the `ai-pr-reviewer` command)
-pip install -e .
-
-# 3. Set your API key
-export DOUGH_API_KEY="sk-your-key-here"
-# (Optionally set GITHUB_TOKEN if you want to post comments)
-
-# 4. Run it!
-ai-pr-reviewer https://github.com/django/django/pull/21523
-
-# (Add --post-comment to automatically post the review back to GitHub)
-ai-pr-reviewer https://github.com/django/django/pull/21523 --post-comment
-```
-
----
-
-### Option B: Run the Web Dashboard
-
-If you prefer a visual interface, you can boot up the FastAPI backend and React frontend.
-
-#### 1. Backend Setup
-
-```bash
-# Enter the directory
+# Clone the repository and enter the directory
 cd pr_rev
 
 # Create and activate a virtual environment

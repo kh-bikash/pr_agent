@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+httpx
+python-dotenv
+pydantic
+tenacity
+langchain-core
+langchain-openai
+langgraph
+rich
+argparse

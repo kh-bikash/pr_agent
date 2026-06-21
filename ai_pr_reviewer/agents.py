@@ -43,7 +43,6 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
-DOUGH_API_KEY: str = os.getenv("DOUGH_API_KEY", "")
 MODEL_NAME: str = "groq/llama-3.3-70b-versatile"   # Dough model formatting
 MAX_DIFF_CHARS: int = 8_000                  # ~2 000 tokens — stays in TPM budget
 AGENT_STAGGER_SEC: float = 2.0              # seconds between agent starts
@@ -157,13 +156,14 @@ Examine the provided git diff for:
 # ---------------------------------------------------------------------------
 
 def _make_llm() -> ChatOpenAI:
-    if not DOUGH_API_KEY:
+    dough_api_key = os.getenv("DOUGH_API_KEY", "").strip()
+    if not dough_api_key:
         raise EnvironmentError(
-            "DOUGH_API_KEY is not set. Add it to your .env file."
+            "DOUGH_API_KEY is not set. Please set the environment variable or use --dough-api-key."
         )
     return ChatOpenAI(
         model=MODEL_NAME,
-        api_key=DOUGH_API_KEY,
+        api_key=dough_api_key,
         base_url="https://dough.id/api/v1",
         default_headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
         temperature=0.1,
