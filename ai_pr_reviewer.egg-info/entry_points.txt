@@ -1,2 +1,0 @@
-[console_scripts]
-ai-pr-reviewer = ai_pr_reviewer.cli:main
